@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume Analyser &amp; Job Matcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="page-upload">
+
+  <header class="topbar app-topbar">
+    <span class="brand">Resume Analyser &amp; Job Matcher</span>
+  </header>
+
+  <main class="container upload-container">
+
+    <h1 class="upload-heading">Analyse Your Resume Against A Job Description</h1>
+    <p class="upload-sub muted">Paste Or Upload Both Documents Below, Then Click <strong>Analyse</strong>.</p>
+
+    {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('analyse') }}" enctype="multipart/form-data" class="upload-form">
+
+      <div class="upload-grid">
+
+        <div class="upload-panel card">
+          <h2 class="panel-heading">Resume</h2>
+
+          <label class="field-label" for="resume_text">Paste Resume Text</label>
+          <textarea
+            id="resume_text"
+            name="resume_text"
+            class="text-input"
+            rows="14"
+            placeholder="Paste The Full Text Of Your Resume Here"
+          ></textarea>
+
+          <div class="or-divider"><span>or</span></div>
+
+          <label class="field-label" for="resume_file">Upload PDF / Text File</label>
+          <input
+            id="resume_file"
+            name="resume_file"
+            type="file"
+            accept=".pdf,.txt"
+            class="file-input"
+          >
+        </div>
+
+
+        <div class="upload-panel card">
+          <h2 class="panel-heading">Job Description</h2>
+
+          <label class="field-label" for="job_text">Paste Job Description Text</label>
+          <textarea
+            id="job_text"
+            name="job_text"
+            class="text-input"
+            rows="14"
+            placeholder="Paste The Full Job Description Here"
+          ></textarea>
+
+          <div class="or-divider"><span>or</span></div>
+
+          <label class="field-label" for="job_file">Upload PDF / text file</label>
+          <input
+            id="job_file"
+            name="job_file"
+            type="file"
+            accept=".pdf,.txt"
+            class="file-input"
+          >
+        </div>
+
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" class="btn-primary">Analyse</button>
+      </div>
+
+    </form>
+  </main>
+
+  <footer class="footer">
+    Resume Analyser &amp; Job Matcher
+  </footer>
+
+</body>
+</html>

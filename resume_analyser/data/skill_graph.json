@@ -1,0 +1,70 @@
+{
+  "edges": [
+    ["PyTorch", "Deep Learning"],
+    ["TensorFlow", "Deep Learning"],
+    ["Keras", "Deep Learning"],
+    ["Deep Learning", "Machine Learning"],
+    ["Scikit-learn", "Machine Learning"],
+    ["XGBoost", "Machine Learning"],
+    ["Natural Language Processing", "Machine Learning"],
+    ["Computer Vision", "Machine Learning"],
+    ["Pandas", "Data Science"],
+    ["NumPy", "Data Science"],
+    ["Jupyter", "Data Science"],
+    ["Matplotlib", "Data Visualization"],
+    ["Seaborn", "Data Visualization"],
+    ["Plotly", "Data Visualization"],
+    ["Tableau", "Data Visualization"],
+    ["Power BI", "Data Visualization"],
+
+    ["React", "Frontend"],
+    ["Angular", "Frontend"],
+    ["Vue", "Frontend"],
+    ["JavaScript", "Frontend"],
+    ["TypeScript", "Frontend"],
+    ["HTML", "Frontend"],
+    ["CSS", "Frontend"],
+
+    ["Node.js", "Backend"],
+    ["Django", "Backend"],
+    ["Flask", "Backend"],
+    ["FastAPI", "Backend"],
+    ["Spring Boot", "Backend"],
+    ["Express", "Backend"],
+
+    ["Docker", "DevOps"],
+    ["Kubernetes", "DevOps"],
+    ["Terraform", "DevOps"],
+    ["Jenkins", "DevOps"],
+    ["CI/CD", "DevOps"],
+    ["Ansible", "DevOps"],
+
+    ["AWS", "Cloud"],
+    ["Azure", "Cloud"],
+    ["Google Cloud Platform", "Cloud"],
+    ["GCP", "Cloud"],
+
+    ["PostgreSQL", "SQL"],
+    ["MySQL", "SQL"],
+    ["SQL Server", "SQL"],
+    ["Oracle", "SQL"],
+    ["SQLite", "SQL"],
+
+    ["MongoDB", "NoSQL"],
+    ["Redis", "NoSQL"],
+    ["Cassandra", "NoSQL"],
+    ["DynamoDB", "NoSQL"],
+
+    ["Apache Spark", "Big Data"],
+    ["Hadoop", "Big Data"],
+    ["Kafka", "Big Data"],
+    ["Airflow", "Data Engineering"],
+    ["Snowflake", "Data Engineering"],
+    ["Databricks", "Data Engineering"],
+
+    ["REST API", "API Development"],
+    ["GraphQL", "API Development"],
+    ["Microservices", "System Design"],
+    ["Distributed Systems", "System Design"]
+  ]
+}

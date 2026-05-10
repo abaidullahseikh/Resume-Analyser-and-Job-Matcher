@@ -1,0 +1,77 @@
+{
+  "_comment": "Same-meaning alternative names. Each list is a synonym set — any token in the list is treated as identical to any other token in the same list. Curated for high precision (no near-synonyms; only true equivalents and official aliases / abbreviations).",
+  "synsets": [
+    ["JS", "JavaScript", "ECMAScript"],
+    ["TS", "TypeScript"],
+    ["Py", "Python"],
+
+    ["ML", "Machine Learning"],
+    ["AI", "Artificial Intelligence"],
+    ["DL", "Deep Learning"],
+    ["NLP", "Natural Language Processing", "Computational Linguistics"],
+    ["CV", "Computer Vision", "Image Recognition"],
+    ["RL", "Reinforcement Learning"],
+    ["LLM", "Large Language Model", "Large Language Models"],
+
+    ["k8s", "Kubernetes"],
+    ["GCP", "Google Cloud Platform", "Google Cloud"],
+    ["AWS", "Amazon Web Services"],
+    ["Azure", "Microsoft Azure"],
+
+    ["DB", "Database", "Databases"],
+    ["RDBMS", "Relational Database", "SQL Database"],
+    ["NoSQL", "Non-Relational Database", "Document Database"],
+
+    ["REST", "REST API", "RESTful", "RESTful API"],
+    ["GraphQL", "GraphQL API"],
+    ["gRPC", "Google RPC"],
+
+    ["CI", "Continuous Integration"],
+    ["CD", "Continuous Delivery", "Continuous Deployment"],
+    ["CI/CD", "Continuous Integration/Continuous Delivery", "CI-CD pipeline", "CICD"],
+
+    ["IaC", "Infrastructure as Code"],
+    ["TDD", "Test Driven Development", "Test-Driven Development"],
+    ["BDD", "Behaviour Driven Development", "Behavior-Driven Development"],
+
+    ["OOP", "Object Oriented Programming", "Object-Oriented Programming"],
+    ["FP", "Functional Programming"],
+
+    ["FE", "Frontend", "Front-End", "Front End"],
+    ["BE", "Backend", "Back-End", "Back End"],
+    ["FS", "Full Stack", "Full-Stack", "Fullstack"],
+
+    ["UX", "User Experience"],
+    ["UI", "User Interface"],
+
+    ["DevOps", "DevSecOps", "Site Reliability Engineering", "SRE"],
+
+    ["PostgreSQL", "Postgres", "PSQL"],
+    ["MS SQL", "SQL Server", "Microsoft SQL Server"],
+    ["MariaDB", "MySQL"],
+
+    ["Node.js", "Node", "NodeJS"],
+    ["Next.js", "Next", "NextJS"],
+    ["React", "React.js", "ReactJS"],
+    ["Vue", "Vue.js", "VueJS"],
+    ["Angular", "Angular.js", "AngularJS"],
+
+    ["TensorFlow", "TF"],
+    ["PyTorch", "Torch"],
+    ["scikit-learn", "sklearn", "Scikit-learn"],
+
+    ["Apache Spark", "Spark", "PySpark"],
+    ["Apache Kafka", "Kafka"],
+    ["Apache Airflow", "Airflow"],
+    ["Apache Hadoop", "Hadoop"],
+
+    ["Git", "GitHub", "GitLab", "Bitbucket"],
+
+    ["Agile", "Scrum", "Kanban"],
+
+    ["A/B Testing", "Split Testing", "AB Test"],
+
+    ["Stats", "Statistics", "Statistical Analysis"],
+    ["Data Viz", "Data Visualization", "Data Visualisation"]
+  ]
+}

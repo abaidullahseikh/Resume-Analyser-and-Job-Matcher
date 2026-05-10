@@ -1,0 +1,18 @@
+{
+  "junior": [
+    "junior", "entry", "entry-level", "graduate", "intern", "trainee",
+    "fresher", "associate i", "associate 1", "0-2 years", "0-1 years",
+    "no experience required"
+  ],
+  "mid": [
+    "mid", "mid-level", "intermediate", "associate", "professional",
+    "engineer ii", "engineer 2", "associate ii", "2-5 years", "3-5 years",
+    "developer ii"
+  ],
+  "senior": [
+    "senior", "lead", "principal", "staff", "expert", "advanced",
+    "head of", "manager", "architect", "director", "fellow",
+    "5+ years", "7+ years", "10+ years", "engineer iii", "engineer 3",
+    "deep expertise", "extensive experience"
+  ]
+}

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Results — Resume Analyser & Job Matcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="page-dashboard">
+  <header class="topbar app-topbar">
+    <a href="{{ url_for('index') }}" class="brand back-link">Back</a>
+    <div class="brand-sub">
+      <strong>{{ parsed_job.title or 'Target role' }}</strong>{% if parsed_job.company %} · {{ parsed_job.company }}{% endif %}{% if parsed_job.location %} · <span class="muted">{{ parsed_job.location }}</span>{% endif %}
+      <span class="muted small">
+        ·
+        {% if match.required_years %}{{ match.required_years }}+ Yrs Required{% else %}No Year Minimum{% endif %}
+        · Analysed In {{ timings.total }}s
+      </span>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="ghost-button" id="print-report-btn">Print Report</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="match-panel" id="tab-match">
+
+      {# Variable setup #}
+      {% set latest_role_m = analysis.role_experience.latest_role if analysis.role_experience else None %}
+      {% set recent_roles_m = analysis.role_experience.recent_year_roles if analysis.role_experience else [] %}
+      {% set candidate_line_m = (analysis.sections._meta.raw_text or '').split('\n') | reject('equalto','') | list %}
+      {% set candidate_name_m = (candidate_line_m[0] | trim) if candidate_line_m else 'The candidate' %}
+      {% set top_skills_m = (analysis.skills | sort(attribute='confidence', reverse=true))[:5] %}
+      {% set core_count_m = analysis.skills | selectattr('category','equalto','core') | list | length %}
+      {% set support_count_m = analysis.skills | selectattr('category','equalto','supporting') | list | length %}
+      {% set soft_count_m = analysis.skills | selectattr('category','equalto','soft') | list | length %}
+      {% set domains_seen_m = analysis.observed_domains if analysis.observed_domains else (analysis.projects | selectattr('domain') | map(attribute='domain') | list | unique | list if analysis.projects else []) %}
+      {% set required_skill_reqs_m = requirements | selectattr('is_required') | selectattr('category','equalto','skill') | list %}
+
+      <section class="dashboard-hero score-{{ match.label }}">
+        <div class="dashboard-hero-main">
+          <span class="eyebrow">Live Match Overview</span>
+          <h1>{{ candidate_name_m }}</h1>
+          <p class="hero-position-name">
+            Applying For <strong>{{ parsed_job.title or 'Target Role' }}</strong>
+            {% if parsed_job.company %} At <strong>{{ parsed_job.company }}</strong>{% endif %}
+            {% if parsed_job.location %} · {{ parsed_job.location }}{% endif %}
+          </p>
+          <div class="hero-chips">
+            <span class="badge">{{ match.n_direct }} Direct</span>
+            <span class="badge">{{ match.n_inferred }} Inferred</span>
+            <span class="badge">{{ match.n_missing }} Missing</span>
+            <span class="badge">Confidence: {{ match.confidence | title }}</span>
+          </div>
+        </div>
+        <div class="hero-score-card">
+          <div class="hero-score">{{ match.overall_score }}</div>
+          <div class="hero-score-label">{{ match.label | upper }} MATCH</div>
+          {% if match.required_years %}
+            <div class="hero-score-note">{{ match.required_years }}+ Yrs Required</div>
+          {% else %}
+            <div class="hero-score-note">No Year Minimum Detected</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <div class="grid-2 stat-row">
+        {% set _total_reqs = match.n_direct + match.n_inferred + match.n_missing %}
+        {% set _covered    = match.n_direct + match.n_inferred %}
+        {% set _cover_pct  = ((_covered / _total_reqs * 100) | round(0) | int) if _total_reqs > 0 else 0 %}
+        {% set _direct_w   = ((match.n_direct   / _total_reqs * 100) | round(1)) if _total_reqs > 0 else 0 %}
+        {% set _inferred_w = ((match.n_inferred / _total_reqs * 100) | round(1)) if _total_reqs > 0 else 0 %}
+        {% set _missing_w  = ((match.n_missing  / _total_reqs * 100) | round(1)) if _total_reqs > 0 else 0 %}
+        <div class="card">
+          <h3>Match Breakdown</h3>
+          <div class="chart-twin">
+            <div class="chart-wrap-sm"><canvas id="matchBreakdownChart"></canvas></div>
+            <div class="chart-wrap-sm"><canvas id="matchRadarChart"></canvas></div>
+          </div>
+
+          <div class="sc-divider">
+            <span class="sc-divider-label">Skill Coverage</span>
+          </div>
+          <div class="sc-headline">
+            <span class="sc-big">{{ _cover_pct }}%</span>
+            <span class="muted small">of {{ _total_reqs }} requirements covered</span>
+          </div>
+          <div class="sc-bar-wrap">
+            <div class="sc-bar">
+              {% if _direct_w > 0 %}<div class="sc-seg sc-direct"   style="width:{{ _direct_w }}%"   title="Direct: {{ match.n_direct }}"></div>{% endif %}
+              {% if _inferred_w > 0 %}<div class="sc-seg sc-inferred" style="width:{{ _inferred_w }}%" title="Inferred: {{ match.n_inferred }}"></div>{% endif %}
+              {% if _missing_w > 0 %}<div class="sc-seg sc-missing"  style="width:{{ _missing_w }}%"  title="Missing: {{ match.n_missing }}"></div>{% endif %}
+            </div>
+          </div>
+          <div class="sc-stats">
+            <div class="sc-stat sc-stat-direct">
+              <span class="sc-stat-num">{{ match.n_direct }}</span>
+              <span class="sc-stat-label">Direct</span>
+              <span class="sc-stat-sub">Found Word-For-Word</span>
+            </div>
+            <div class="sc-stat sc-stat-inferred">
+              <span class="sc-stat-num">{{ match.n_inferred }}</span>
+              <span class="sc-stat-label">Inferred</span>
+              <span class="sc-stat-sub">Implied By Context</span>
+            </div>
+            <div class="sc-stat sc-stat-missing">
+              <span class="sc-stat-num">{{ match.n_missing }}</span>
+              <span class="sc-stat-label">Missing</span>
+              <span class="sc-stat-sub">Not Found In Resume</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Experience</h3>
+
+          {% set _bk = match.experience_kind_buckets or {} %}
+          {% set _job_m    = (_bk.job.merged_months        if _bk and _bk.job        else 0) %}
+          {% set _intern_m = (_bk.internship.merged_months if _bk and _bk.internship else 0) %}
+          {% set _all_positions = match.resume_positions_list or [] %}
+          {% set _job_positions    = _all_positions | selectattr('kind','equalto','job')        | list %}
+          {% set _intern_positions = _all_positions | selectattr('kind','equalto','internship') | list %}
+
+          <details class="exp-drawer">
+            <summary class="exp-drawer-summary">
+              <span class="exp-drawer-chevron" aria-hidden="true"></span>
+              <span class="exp-drawer-label">Professional Experience</span>
+              <strong class="exp-drawer-value">{{ match.estimated_resume_label or '0 months' }}</strong>
+              {% if match.required_years %}
+                {% if match.experience_verdict == 'match' %}
+                  <span class="badge verdict-match">Matches JD</span>
+                {% elif match.experience_verdict == 'under' %}
+                  <span class="badge verdict-under">Under JD</span>
+                {% elif match.experience_verdict == 'over' %}
+                  <span class="badge verdict-over">Over JD</span>
+                {% endif %}
+              {% endif %}
+            </summary>
+            {% if _job_positions %}
+              <div class="exp-entries">
+                {% for p in _job_positions %}
+                  <div class="exp-entry">
+                    <div class="exp-entry-left">
+                      <span class="exp-entry-role">{{ p.role_title or '—' }}</span>
+                      {% if p.company %}
+                        <span class="exp-entry-company">{{ p.company }}</span>
+                      {% endif %}
+                    </div>
+                    <div class="exp-entry-right">
+                      {% if p.is_current %}<span class="badge current-role">Current</span>
+                      {% elif p.is_recent_year %}<span class="badge recent-role">Past Year</span>{% endif %}
+                      <span class="exp-entry-date">{{ p.date_range or '—' }}</span>
+                      <span class="exp-entry-duration">{{ p.duration_label }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="muted small exp-empty">No job positions detected.</p>
+            {% endif %}
+          </details>
+
+          <details class="exp-drawer">
+            <summary class="exp-drawer-summary">
+              <span class="exp-drawer-chevron" aria-hidden="true"></span>
+              <span class="exp-drawer-label">Internships / Training</span>
+              <strong class="exp-drawer-value">
+                {% set _i_y = (_intern_m // 12) %}{% set _i_r = (_intern_m % 12) %}
+                {% if _intern_m > 0 %}
+                  {% if _i_y %}{{ _i_y }} year{{ '' if _i_y == 1 else 's' }}{% endif %}
+                  {% if _i_r %} {{ _i_r }} month{{ '' if _i_r == 1 else 's' }}{% endif %}
+                {% else %}0 months{% endif %}
+              </strong>
+            </summary>
+            {% if _intern_positions %}
+              <div class="exp-entries">
+                {% for p in _intern_positions %}
+                  <div class="exp-entry exp-entry-intern">
+                    <div class="exp-entry-left">
+                      <span class="exp-entry-role">{{ p.role_title or '—' }}</span>
+                      {% if p.company %}
+                        <span class="exp-entry-company">{{ p.company }}</span>
+                      {% endif %}
+                    </div>
+                    <div class="exp-entry-right">
+                      {% if p.is_current %}<span class="badge current-role">Current</span>
+                      {% elif p.is_recent_year %}<span class="badge recent-role">Past Year</span>{% endif %}
+                      <span class="exp-entry-date">{{ p.date_range or '—' }}</span>
+                      <span class="exp-entry-duration">{{ p.duration_label }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="muted small exp-empty">No internships or training detected.</p>
+            {% endif %}
+          </details>
+
+          <hr style="margin:16px 0 12px">
+
+          <div class="exp-section-label" style="margin-bottom:8px">Risk Flags</div>
+          {% if match.risks %}
+            <ul class="chip-list">
+              {% for r in match.risks %}
+                <li class="chip chip-red">{{ r }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="muted small">No Risk Flags Detected.</p>
+          {% endif %}
+
+          <div style="margin-top:12px">
+            <p class="kv"><span>Required Years:</span> {{ match.required_years if match.required_years else '—' }}</p>
+            <p class="kv"><span>Direct / Inferred / Missing:</span> {{ match.n_direct }} / {{ match.n_inferred }} / {{ match.n_missing }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="analyst-summary-wrapper">
+
+        <div class="as-header as-header-{{ match.label }}">
+          <div class="as-header-left">
+            <span class="as-header-title">Analyst Summary</span>
+          </div>
+          <div class="as-header-verdict">
+            <span class="badge score-{{ match.label }} as-verdict-badge">
+              {{ match.overall_score }}/100 · {{ match.label | upper }}
+            </span>
+          </div>
+        </div>
+
+        <div class="as-grid">
+
+          <div class="as-card as-card-skills">
+            <div class="as-card-headline">Skills</div>
+
+            <div class="as-skill-counts">
+              <div class="as-skill-count">
+                <span class="as-skill-num core-num">{{ core_count_m }}</span>
+                <span class="as-skill-label">Core</span>
+              </div>
+              <div class="as-skill-divider"></div>
+              <div class="as-skill-count">
+                <span class="as-skill-num support-num">{{ support_count_m }}</span>
+                <span class="as-skill-label">Supporting</span>
+              </div>
+              <div class="as-skill-divider"></div>
+              <div class="as-skill-count">
+                <span class="as-skill-num soft-num">{{ soft_count_m }}</span>
+                <span class="as-skill-label">Soft</span>
+              </div>
+            </div>
+
+            <div class="as-section-label">Top Skills</div>
+            <div class="as-chips">
+              {% for s in top_skills_m %}
+                <span class="chip-skill chip-{{ s.category }}">{{ s.skill }}</span>
+              {% else %}
+                <span class="muted small">None detected</span>
+              {% endfor %}
+            </div>
+
+            {% if domains_seen_m %}
+            <div class="as-section-label" style="margin-top:12px">Domains</div>
+
+            <div class="as-chips">
+              {% for d in domains_seen_m %}
+                <span class="badge domain-badge">{{ d }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          {% set _edu_sec   = analysis.sections.education if analysis.sections else None %}
+          {% set _edu_lines = (_edu_sec.content if _edu_sec and _edu_sec.content else []) %}
+          {% set _em        = education_match %}
+          <div class="as-card as-card-education">
+            <div class="as-card-headline">Education</div>
+
+            {% if _em.required %}
+              <div class="as-edu-badge as-edu-{{ _em.status }}">
+                <span class="as-edu-icon">
+                  {% if _em.status == 'match' %}Met{% elif _em.status == 'partial' %}Partial{% else %}Gap{% endif %}
+                </span>
+                <div>
+                  <strong>
+                    {% if _em.status == 'match' %}Requirement Met
+                    {% elif _em.status == 'partial' %}Partial Match
+                    {% else %}Education Gap{% endif %}
+                  </strong>
+                  <p>{{ _em.required_label }} required · {{ _em.found_label }} found</p>
+                </div>
+              </div>
+              {% if _em.required_fields %}
+                <div class="as-section-label">JD Requires</div>
+                <div class="as-chips">
+                  {% for f in _em.required_fields %}
+                    <span class="chip-skill chip-core">{{ f }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="as-edu-neutral">
+                <span class="muted small">No Specific Education Requirement In JD</span>
+              </div>
+            {% endif %}
+
+            {% if education_entries %}
+              <div class="as-section-label" style="margin-top:12px">From Resume</div>
+              <div class="as-edu-drawers">
+                {% for entry in education_entries %}
+                  <details class="as-edu-drawer">
+                    <summary class="as-edu-drawer-summary">
+                      <span class="as-edu-drawer-chevron"></span>
+                      <span class="as-edu-drawer-text">{{ entry.name }}</span>
+                    </summary>
+                    <div class="as-edu-drawer-body">
+                      <span class="muted small">{{ entry.full }}</span>
+                    </div>
+                  </details>
+                {% endfor %}
+              </div>
+            {% elif _edu_lines %}
+              <div class="as-section-label" style="margin-top:12px">From Resume</div>
+              <div class="as-edu-drawers">
+                {% for line in _edu_lines[:6] %}
+                  {% if line | trim %}
+                    <details class="as-edu-drawer">
+                      <summary class="as-edu-drawer-summary">
+                        <span class="as-edu-drawer-chevron"></span>
+                        <span class="as-edu-drawer-text">{{ line | trim | truncate(55, true, '…') }}</span>
+                      </summary>
+                      <div class="as-edu-drawer-body">
+                        <span class="muted small">{{ line | trim }}</span>
+                      </div>
+                    </details>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="as-card as-card-jd">
+            <div class="as-card-headline">Job Description</div>
+
+            <div class="as-jd-title">{{ parsed_job.title or '—' }}</div>
+            {% if parsed_job.company or parsed_job.location %}
+              <div class="as-jd-sub">
+                {% if parsed_job.company %}{{ parsed_job.company }}{% endif %}
+                {% if parsed_job.company and parsed_job.location %} · {% endif %}
+                {% if parsed_job.location %}{{ parsed_job.location }}{% endif %}
+              </div>
+            {% endif %}
+
+            {% if parsed_job.summary %}
+              <p class="as-jd-summary">{{ parsed_job.summary | truncate(180, true, '…') }}</p>
+            {% endif %}
+
+            <div class="as-jd-meta">
+              <div class="as-jd-meta-item">
+                <span class="as-jd-meta-label">Experience</span>
+                <strong>{% if match.required_years %}{{ match.required_years }}+ yrs{% else %}—{% endif %}</strong>
+              </div>
+              <div class="as-jd-meta-item">
+                <span class="as-jd-meta-label">Confidence</span>
+                <strong>{{ match.confidence | title }}</strong>
+              </div>
+            </div>
+
+            {% if required_skill_reqs_m %}
+              <div class="as-section-label">Required Skills</div>
+              <div class="as-chips">
+                {% for r in required_skill_reqs_m[:6] %}
+                  <span class="chip-skill chip-core">{{ r.name }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card evidence">
+        <h3>Evidence Per Requirement</h3>
+        <div class="evidence-accordion">
+          <details class="evidence-drawer drawer-direct">
+            <summary class="evidence-header header-direct">
+              <span class="drawer-chevron" aria-hidden="true"></span>
+              <span class="drawer-title">Direct</span>
+              <span class="drawer-count">{{ links_grouped.direct|length }}</span>
+            </summary>
+            <div class="drawer-body">
+              {% for link in links_grouped.direct %}
+                {% include "_evidence_item.html" %}
+              {% else %}
+                <p class="muted small">None.</p>
+              {% endfor %}
+            </div>
+          </details>
+
+          <details class="evidence-drawer drawer-inferred">
+            <summary class="evidence-header header-inferred">
+              <span class="drawer-chevron" aria-hidden="true"></span>
+              <span class="drawer-title">Inferred</span>
+              <span class="drawer-count">{{ links_grouped.inferred|length }}</span>
+            </summary>
+            <div class="drawer-body">
+              {% for link in links_grouped.inferred %}
+                {% include "_evidence_item.html" %}
+              {% else %}
+                <p class="muted small">None.</p>
+              {% endfor %}
+            </div>
+          </details>
+
+          <details class="evidence-drawer drawer-missing">
+            <summary class="evidence-header header-missing">
+              <span class="drawer-chevron" aria-hidden="true"></span>
+              <span class="drawer-title">Missing</span>
+              <span class="drawer-count">{{ links_grouped.missing|length }}</span>
+            </summary>
+            <div class="drawer-body">
+              {% for link in links_grouped.missing %}
+                {% include "_evidence_item.html" %}
+              {% else %}
+                <p class="muted small">None.</p>
+              {% endfor %}
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card explanation">
+        <h3>Explanation</h3>
+        <blockquote class="explanation-block">{{ explanation }}</blockquote>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    Analysed In {{ timings.total }}s
+    · Analyser {{ timings.analyser }}s
+    · Matcher {{ timings.matcher }}s
+    · Explain {{ timings.explain }}s
+  </footer>
+
+  <script id="dashboard-data" type="application/json">
+  {
+    "match_breakdown": {{ match.breakdown | tojson }},
+    "n_direct":   {{ match.n_direct   | tojson }},
+    "n_inferred": {{ match.n_inferred | tojson }},
+    "n_missing":  {{ match.n_missing  | tojson }},
+    "n_required_direct":   {{ links_grouped.direct   | selectattr('is_required') | list | length | tojson }},
+    "n_required_inferred": {{ links_grouped.inferred | selectattr('is_required') | list | length | tojson }},
+    "n_required_missing":  {{ links_grouped.missing  | selectattr('is_required') | list | length | tojson }},
+    "n_optional": {{ (requirements | rejectattr('is_required') | list | length) | tojson }},
+    "copy_report": {
+      "candidate": {{ candidate_name_m | tojson }},
+      "role": {{ (parsed_job.title or 'Target role') | tojson }},
+      "company": {{ (parsed_job.company or '') | tojson }},
+      "score": {{ match.overall_score | tojson }},
+      "label": {{ match.label | tojson }},
+      "main_experience": {{ match.estimated_resume_label | tojson }},
+      "direct": {{ match.n_direct | tojson }},
+      "inferred": {{ match.n_inferred | tojson }},
+      "missing": {{ match.n_missing | tojson }},
+      "actions": {{ impression.action_plan | tojson }},
+      "strengths": {{ impression.strengths | tojson }}
+    }
+  }
+  </script>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

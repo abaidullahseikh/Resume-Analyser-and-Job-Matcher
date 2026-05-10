@@ -1,0 +1,40 @@
+<details class="evidence-item evidence-{{ link.link_type }}"
+         data-strength="{{ (link.strength * 100)|int }}">
+  <summary class="evidence-item-header">
+    <span class="evidence-item-chevron" aria-hidden="true"></span>
+    <span class="req-name">{{ link.requirement_name }}</span>
+    {% if link.is_required %}
+      <span class="badge req-required">Required</span>
+    {% else %}
+      <span class="badge req-optional">Nice-To-Have</span>
+    {% endif %}
+    {% if link.link_type != "missing" %}
+      <span class="badge strength-badge">{{ (link.strength * 100)|int }}%</span>
+    {% endif %}
+  </summary>
+
+  <div class="evidence-item-body">
+    {% if link.reasoning %}
+      <p class="evidence-reasoning muted small">{{ link.reasoning }}</p>
+    {% endif %}
+
+    {% if link.supporting_bullets %}
+      <ul class="evidence-bullets">
+        {% for b in link.supporting_bullets %}
+          <li class="evidence-bullet">
+            <span class="bullet-text">{{ b.bullet_text }}</span>
+            {% if b.role_title or b.date_range %}
+              <span class="bullet-meta muted small">
+                {% if b.role_title %}{{ b.role_title }}{% endif %}
+                {% if b.company %} · {{ b.company }}{% endif %}
+                {% if b.date_range %} · {{ b.date_range }}{% endif %}
+              </span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% elif not link.reasoning %}
+      <p class="muted small">No Supporting Evidence.</p>
+    {% endif %}
+  </div>
+</details>

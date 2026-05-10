@@ -1,0 +1,17 @@
+{
+  "weight": 3.0,
+  "skills": [
+    "Python", "Java", "C++", "C#", "Go", "Rust", "JavaScript", "TypeScript",
+    "SQL", "NoSQL", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Cassandra",
+    "Machine Learning", "Deep Learning", "Natural Language Processing",
+    "Computer Vision", "Reinforcement Learning", "Data Science",
+    "TensorFlow", "PyTorch", "Keras", "Scikit-learn", "XGBoost",
+    "Apache Spark", "Hadoop", "Kafka", "Airflow", "Snowflake", "Databricks",
+    "AWS", "Azure", "Google Cloud Platform", "Kubernetes", "Docker",
+    "Terraform", "Jenkins", "Git", "CI/CD",
+    "React", "Angular", "Vue", "Node.js", "Django", "Flask", "FastAPI",
+    "Spring Boot", "GraphQL", "REST API", "Microservices",
+    "Statistics", "Linear Algebra", "Probability", "A/B Testing",
+    "Algorithms", "Data Structures", "System Design", "Distributed Systems"
+  ]
+}
